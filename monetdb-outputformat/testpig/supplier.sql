@@ -1,0 +1,3 @@
+DROP TABLE supplier;
+CREATE TABLE supplier (s_suppkey INT NOT NULL, s_name VARCHAR(25) NOT NULL, s_address VARCHAR(40) NOT NULL, s_nationkey INT NOT NULL, s_phone VARCHAR(15) NOT NULL, s_acctbal DECIMAL(15,2) NOT NULL, s_comment VARCHAR(101) NOT NULL, PRIMARY KEY (s_suppkey)) ;
+COPY BINARY INTO supplier FROM ('/export/scratch1/hannes/tmp/monetdb-load-0.bulkload','/export/scratch1/hannes/tmp/monetdb-load-1.bulkload','/export/scratch1/hannes/tmp/monetdb-load-2.bulkload','/export/scratch1/hannes/tmp/monetdb-load-3.bulkload','/export/scratch1/hannes/tmp/monetdb-load-4.bulkload','/export/scratch1/hannes/tmp/monetdb-load-5.bulkload','/export/scratch1/hannes/tmp/monetdb-load-6.bulkload');
