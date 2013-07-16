@@ -1,9 +1,11 @@
 package nl.cwi.da.monetdb.loader.hadoop;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Job;
@@ -33,18 +35,54 @@ public class MonetDBStoreFunc implements StoreFuncInterface {
 	}
 
 	public void setStoreLocation(String location, Job job) throws IOException {
-		FileOutputFormat.setOutputPath(job, new Path(location));
+		Path p = new Path(location);
+		FileOutputFormat.setOutputPath(job, p);
+		sqlSchema.setTableName(p.getName());
+
+		Path schemaPath = p.suffix("/_schema.sql");
+		Path loaderPath = p.suffix("/_loader.sql");
+
+		FileSystem fs = p.getFileSystem(job.getConfiguration());
+
+		if (!fs.exists(schemaPath)) {
+			FSDataOutputStream os = fs.create(schemaPath);
+			os.write(sqlSchema.toSQL().getBytes());
+			os.close();
+			log.info("Wrote SQL Schema to " + schemaPath);
+		}
+		
+		if (!fs.exists(loaderPath)) {
+			FSDataOutputStream os = fs.create(loaderPath);
+			os.write(sqlSchema.getLoaderSQL().getBytes());
+			os.close();
+			log.info("Wrote MonetDB loading command to " + loaderPath);
+		}
 	}
 
-	private static Collection<Byte> supportedTypes = Arrays.asList(
-			DataType.BOOLEAN, DataType.BYTE, DataType.INTEGER, DataType.LONG,
-			DataType.FLOAT, DataType.DOUBLE, DataType.LONG, DataType.CHARARRAY);
+	private static Map<Byte, String> pigSqlTypeMap = new HashMap<Byte, String>();
+	static {
+		pigSqlTypeMap.put(DataType.BOOLEAN, "BOOLEAN");
+		pigSqlTypeMap.put(DataType.BYTE, "TINYINT");
+		pigSqlTypeMap.put(DataType.INTEGER, "INT");
+		pigSqlTypeMap.put(DataType.LONG, "BIGINT");
+		pigSqlTypeMap.put(DataType.FLOAT, "REAL");
+		pigSqlTypeMap.put(DataType.DOUBLE, "DOUBLE");
+		pigSqlTypeMap.put(DataType.CHARARRAY, "CLOB");
+	}
+
+	private MonetDBSQLSchema sqlSchema = new MonetDBSQLSchema();
 
 	public void checkSchema(ResourceSchema s) throws IOException {
+		boolean addColumns = sqlSchema.getNumCols() == 0;
+
 		for (ResourceFieldSchema rfs : s.getFields()) {
-			if (!supportedTypes.contains(rfs.getType())) {
+			if (!pigSqlTypeMap.containsKey(rfs.getType())) {
 				throw new IOException("Unsupported Column type: "
 						+ rfs.getName() + " (" + rfs.getType() + ") - Sorry!");
+			}
+			if (addColumns) {
+				sqlSchema.addColumn(rfs.getName(),
+						pigSqlTypeMap.get(rfs.getType()));
 			}
 		}
 	}

@@ -1,7 +1,5 @@
 package nl.cwi.da.monetdb.loader.hadoop;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -32,6 +30,9 @@ public class MonetDBRecordWriter extends
 		this.context = context;
 
 	}
+
+	public static final String FILE_PREFIX = "monetdb-load-";
+	public static final String FILE_SUFFIX = ".bulkload";
 
 	private Map<Integer, OutputStream> writers = new HashMap<Integer, OutputStream>();
 	boolean writersInitialized = false;
@@ -155,8 +156,13 @@ public class MonetDBRecordWriter extends
 				FileSystem fs = outPath.getFileSystem(context
 						.getConfiguration());
 
-				OutputStream os = fs.create(outPath.suffix("/monetdb-load-" + i
-						+ ".bulkload"));
+				Path outputFile = outPath.suffix("/" + FILE_PREFIX + i
+						+ FILE_SUFFIX);
+				if (fs.exists(outputFile)) {
+					throw new IOException("Output file '" + outputFile
+							+ "' already exists.");
+				}
+				OutputStream os = fs.create(outputFile);
 				writers.put(i, os);
 
 				Class valueClass = t.get(i).getClass();
