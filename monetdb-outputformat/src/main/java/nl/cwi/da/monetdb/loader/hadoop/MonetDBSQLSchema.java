@@ -1,10 +1,14 @@
 package nl.cwi.da.monetdb.loader.hadoop;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MonetDBSQLSchema {
-	public static class MonetDBSQLColumn {
+public class MonetDBSQLSchema implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	public static class MonetDBSQLColumn implements Serializable {
+		private static final long serialVersionUID = 1L;
 		public String colunmName;
 		public String sqlType;
 
@@ -15,6 +19,12 @@ public class MonetDBSQLSchema {
 
 		public String toSQL() {
 			return "\"" + colunmName + "\" " + sqlType;
+		}
+
+		@Override
+		public String toString() {
+			return "MonetDBSQLColumn [colunmName=" + colunmName + ", sqlType="
+					+ sqlType + "]";
 		}
 	}
 
@@ -48,21 +58,6 @@ public class MonetDBSQLSchema {
 		return ret;
 	}
 
-	public String getLoaderSQL() {
-		String ret = "COPY BINARY INTO \"" + tableName + "\" FROM (\n";
-
-		for (int i = 0; i < columns.size(); i++) {
-			ret += "'$PATH/" + MonetDBRecordWriter.FILE_PREFIX + i
-					+ MonetDBRecordWriter.FILE_SUFFIX + "'";
-			if (i < columns.size() - 1) {
-				ret += ",\n";
-			}
-		}
-
-		ret += "\n);\n";
-		return ret;
-	}
-
 	public MonetDBSQLSchema addColumn(String columnName, String sqlType) {
 		columns.add(new MonetDBSQLColumn(columnName, sqlType));
 		return this;
@@ -71,4 +66,11 @@ public class MonetDBSQLSchema {
 	public int getNumCols() {
 		return columns.size();
 	}
+
+	@Override
+	public String toString() {
+		return "MonetDBSQLSchema [tableName=" + tableName + ", columns="
+				+ columns + "]";
+	}
+
 }

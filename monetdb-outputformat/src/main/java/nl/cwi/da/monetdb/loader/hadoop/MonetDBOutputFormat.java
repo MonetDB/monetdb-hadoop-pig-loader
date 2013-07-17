@@ -33,9 +33,6 @@ public class MonetDBOutputFormat extends
 	@Override
 	public RecordWriter<WritableComparable, Tuple> getRecordWriter(
 			TaskAttemptContext job) throws IOException, InterruptedException {
-
-		log.info(job);
 		return new MonetDBRecordWriter(job);
-
 	}
 }

@@ -28,10 +28,10 @@ public class MonetDBRecordWriter extends
 
 	public MonetDBRecordWriter(TaskAttemptContext context) throws IOException {
 		this.context = context;
-
 	}
 
-	public static final String FILE_PREFIX = "monetdb-load-";
+	public static final String FILE_PREFIX = "col-";
+	public static final String FOLDER_PREFIX = "part-";
 	public static final String FILE_SUFFIX = ".bulkload";
 
 	private Map<Integer, OutputStream> writers = new HashMap<Integer, OutputStream>();
@@ -39,7 +39,6 @@ public class MonetDBRecordWriter extends
 
 	private interface ValueConverter {
 		byte[] convert(Object value);
-
 	}
 
 	private static class BooleanValueConverter implements ValueConverter {
@@ -156,8 +155,10 @@ public class MonetDBRecordWriter extends
 				FileSystem fs = outPath.getFileSystem(context
 						.getConfiguration());
 
-				Path outputFile = outPath.suffix("/" + FILE_PREFIX + i
+				Path outputFile = outPath.suffix("/" + FOLDER_PREFIX
+						+ context.getJobID().getId() + "/" + FILE_PREFIX + i
 						+ FILE_SUFFIX);
+
 				if (fs.exists(outputFile)) {
 					throw new IOException("Output file '" + outputFile
 							+ "' already exists.");

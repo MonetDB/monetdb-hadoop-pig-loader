@@ -16,9 +16,9 @@ public class SchemaTest {
 		schema.addColumn("s_phone", "VARCHAR(15)");
 		schema.addColumn("s_acctbal", "DECIMAL(15,2)");
 		schema.addColumn("s_comment", "VARCHAR(101)");
-		
+
 		System.out.println(schema.toSQL());
-		System.out.println(schema.getLoaderSQL());
 
 	}
+
 }
