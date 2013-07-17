@@ -2,7 +2,6 @@ package nl.cwi.da.monetdb.loader.hadoop;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -107,10 +106,7 @@ public class MonetDBStoreFunc implements StoreFuncInterface {
 		}
 	}
 
-	private String signature;
-
 	public void setStoreFuncUDFContextSignature(String signature) {
-		this.signature = signature;
 	}
 
 	public void cleanupOnFailure(String location, Job job) throws IOException {
